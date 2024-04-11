@@ -1,11 +1,6 @@
 #!/bin/bash
 
 # Declaración de variables
-resource_group="actividad-2"
-location="eastus"
-vm_name="vm-actividad-2"
-username="keaguirre"
-password="Avaras.duoc2024"
 resource_group_status=false
 vm_status=false
 webserver_status=false
@@ -13,34 +8,17 @@ port_opened=false
 db_server=false
 sql_status=false
 firewall_conf=false
-ip_name="public"
 virtualnet_status=false
 public_ip_status=false
 nsg_rules_status=false
 ip_status=false
-nsg_name="nsg_grupo3"
-nic_name="nic_grupo3"
-subnet_name="grupo3"
-vnet_name="vnet_grupo3"
-db_name="keaguirre"
 #---------------------------------------------
 resource_group=${{ vars.resource_group }}
 location=${{ vars.location }}
 vm_name=${{ vars.vm_name }}
 vm_username=${{ vars.vm_username }}
 vm_password=${{ secrets.vm_password }}
-resource_group_status=${{ vars.resource_group_status }}
-vm_status=${{ vars.vm_status }}
-webserver_status=${{ vars.webserver_status }}
-port_opened=${{ vars.port_opened }}
-db_server=${{ vars.db_server }}
-sql_status=${{ vars.sql_status }}
-firewall_conf=${{ vars.firewall_conf }}
 ip_name=${{ vars.ip_name }}
-virtualnet_status=${{ vars.virtualnet_status }}
-public_ip_status=${{ vars.public_ip_status }}
-nsg_rules_status=${{ vars.nsg_rules_status }}
-ip_status=${{ vars.ip_status }}
 nsg_name=${{ vars.nsg_name }}
 nic_name=${{ vars.nic_name }}
 subnet_name=${{ vars.subnet_name }}

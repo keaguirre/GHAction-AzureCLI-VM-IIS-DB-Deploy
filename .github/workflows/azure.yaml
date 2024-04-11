@@ -15,7 +15,4 @@ jobs:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
       - name: Run Azure sh script
-        env:
-            AZURE_VM_USERNAME: ${{ secrets.AZURE_VM_USERNAME }}
-            AZURE_VM_PASSWORD: ${{ secrets.AZURE_VM_PASSWORD }}
-        run: sh scriptBash.sh
+        run: sh scriptBashAction.sh
