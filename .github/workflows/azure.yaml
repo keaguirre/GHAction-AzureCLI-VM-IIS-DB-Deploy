@@ -15,4 +15,4 @@ jobs:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
       - name: Run Azure sh script
-        run: sh scriptBashAction.sh
+        run: bash scriptBashAction.sh
