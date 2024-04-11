@@ -13,17 +13,17 @@ public_ip_status=false
 nsg_rules_status=false
 ip_status=false
 #---------------------------------------------
-resource_group=${{ vars.resource_group }}
-location=${{ vars.location }}
-vm_name=${{ vars.vm_name }}
-vm_username=${{ vars.vm_username }}
-vm_password=${{ secrets.vm_password }}
-ip_name=${{ vars.ip_name }}
-nsg_name=${{ vars.nsg_name }}
-nic_name=${{ vars.nic_name }}
-subnet_name=${{ vars.subnet_name }}
-vnet_name=${{ vars.vnet_name }}
-db_name=${{ vars.db_name }}
+resource_group=$resource_group
+location=$location
+vm_name=$vm_name
+vm_username=$vm_username
+vm_password=$vm_password
+ip_name=$ip_name
+nsg_name=$nsg_name
+nic_name=$nic_name
+subnet_name=$subnet_name
+vnet_name=$vnet_name
+db_name=$db_name
 
 # Función para manejar errores
 handle_error() {
