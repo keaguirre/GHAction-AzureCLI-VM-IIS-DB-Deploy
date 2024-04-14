@@ -69,7 +69,7 @@ create_nsg(){
 }
 
 nsg_rules(){
-    echo "Creando reglas RDP y HTTP con origen abierto...699"
+    echo "Creando reglas RDP y HTTP con origen abierto...3389"
     if az network nsg rule create --resource-group "$resource_group" --nsg-name "$nsg_name" --name RDPAccess --priority 1000 --protocol Tcp --destination-port-range 3389 --access Allow --direction Inbound --source-address-prefix "0.0.0.0/0"; then
         echo "NSG RDP Rule created"
         if az network nsg rule create --resource-group "$resource_group" --nsg-name "$nsg_name" --name HTTPAccess --priority 1010 --protocol Tcp --destination-port-range 80 --access Allow --direction Inbound --source-address-prefix "0.0.0.0/0"; then
@@ -199,6 +199,17 @@ create_db() {
     fi
 }
 
+# Función para asignar un rol a un usuario en el grupo de recursos
+assign_role_to_user() {
+    echo "Asignando rol al usuario..."
+    user_email="chr.cabrera@duocuc.cl"
+    role="Contributor"
+    if az role assignment create --assignee "$user_email" --role "$role" --resource-group "$resource_group"; then
+        echo "Rol asignado con éxito."
+    else
+        handle_error "No se pudo asignar el rol al usuario."
+    fi
+}
 
 # Función para realizar la limpieza de recursos
 cleanup_resources() {
