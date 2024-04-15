@@ -12,18 +12,20 @@ virtualnet_status=false
 public_ip_status=false
 nsg_rules_status=false
 ip_status=false
-#---------------------------------------------
-resource_group=$resource_group
-location=$location
-vm_name=$vm_name
-vm_username=$vm_username
-vm_password=$vm_password
-ip_name=$ip_name
-nsg_name=$nsg_name
-nic_name=$nic_name
-subnet_name=$subnet_name
-vnet_name=$vnet_name
-db_name=$db_name
+role_assigned=false
+ip_name="$INPUT_IP_NAME" #
+resource_group="$INPUT_RESOURCE_GROUP" #
+location="$INPUT_LOCATION" #
+vm_name="$INPUT_VM_NAME" #
+username="$INPUT_USERNAME" #
+password="$INPUT_PASSWORD" #
+nsg_name="$INPUT_NSG_NAME" #
+nic_name="$INPUT_NIC_NAME" #
+subnet_name="$INPUT_SUBNET_NAME" #
+vnet_name="$INPUT_VNET_NAME" #
+db_name="$INPUT_DB_NAME" #
+role="$INPUT_ROLE" #
+sub_id="$INPUT_SUB_ID"
 
 # Función para manejar errores
 handle_error() {
@@ -34,7 +36,7 @@ handle_error() {
 # Función para crear el grupo de recursos
 create_resource_group() {
     echo "Creando grupo de recursos..."
-    if az group create --name "$resource_group" --location "$location" --tags aay5121=grupo3; then
+    if az group create --name rgroup_ev1 --location "$location" --tags aay5121=grupo3; then
         resource_group_status=true
     else
         handle_error "No se pudo crear el grupo de recursos."
@@ -70,11 +72,11 @@ create_nsg(){
 }
 
 nsg_rules(){
-    echo "Creando reglas RDP y HTTP con origen abierto...699"
+    echo "Creando reglas RDP y HTTP con origen abierto...3389"
     if az network nsg rule create --resource-group "$resource_group" --nsg-name "$nsg_name" --name RDPAccess --priority 1000 --protocol Tcp --destination-port-range 3389 --access Allow --direction Inbound --source-address-prefix "0.0.0.0/0"; then
         echo "NSG RDP Rule created"
         if az network nsg rule create --resource-group "$resource_group" --nsg-name "$nsg_name" --name HTTPAccess --priority 1010 --protocol Tcp --destination-port-range 80 --access Allow --direction Inbound --source-address-prefix "0.0.0.0/0"; then
-            echo "NSG HHTP Rule created"
+            echo "NSG HTTP Rule created"
             nsg_rules_status=true
         else
             handle_error "No se pudo crear la regla HHTP para el NSG"
@@ -111,7 +113,7 @@ create_nic(){
 # Función para crear la máquina virtual
 create_vm() {
     echo "Creando máquina virtual..."
-    if az vm create --resource-group "$resource_group" --name "$vm_name" --image MicrosoftWindowsServer:WindowsServer:2022-datacenter-azure-edition:latest --public-ip-sku Standard --admin-username "$vm_username" --admin-password "$vm_password" --tags aay5121=grupo3; then
+    if az vm create --resource-group "$resource_group" --name "$vm_name" --image MicrosoftWindowsServer:WindowsServer:2019-datacenter:latest --public-ip-sku Standard --admin-username "$username" --admin-password "$password" --tags aay5121=grupo3 --nics "$nic_name"; then
         vm_status=true
     else
         handle_error "No se pudo crear la máquina virtual."
@@ -122,7 +124,7 @@ create_vm() {
 install_web_server() {
     echo "Instalando servidor web en la máquina virtual..."
     if az vm run-command invoke -g "$resource_group" -n "$vm_name" --command-id RunPowerShellScript --scripts "Install-WindowsFeature -name Web-Server -IncludeManagementTools"; then
-        webserver_status=true
+        webserver_install_status=true
     else
         handle_error "No se pudo instalar el servidor web."
     fi
@@ -138,8 +140,31 @@ open_port_80() {
     fi
 }
 
-# Create DB
+# Function to check web server status
+check_web_server_status() {
+    # Show public ip
+    ip_publica=$(az network public-ip show --resource-group "$resource_group" --name "$ip_name" | jq -r '.ipAddress')
+    echo "Public IP check_web_server_status: $ip_publica"
+    echo "Public IP created before: $ip_address"
+    # Check with curl public ip, if retrieves an html response then everything is ok
+    response=$(curl -sSL "http://$ip_publica")
+    echo response: "$response"
 
+    if [ -n "$response" ]; then
+        if [[ $(awk '/<!DOCTYPE html|<!doctype html/ {print}' <<< "$response") ]]; then
+            echo "Web server is running."
+            webserver_status=true
+        else
+            echo "The response is not an HTML page or there is an error in the response."
+            # az group delete --name $resource_group
+        fi
+    else
+        echo "The response is null."
+        # az group delete --name $resource_group
+    fi
+}
+
+# Create DB
 create_sql_server() {
     echo "Creando servidor SQL..."
     if az sql server create --name "$vm_name" --resource-group "$resource_group" --location "$location" --admin-user "$username" --admin-password "$password"; then
@@ -177,6 +202,18 @@ create_db() {
     fi
 }
 
+# Función para asignar un rol a un usuario en el grupo de recursos
+assign_role_to_user() {
+    echo "Asignando rol al usuario..."
+    user_email="ke.aguirre@duocuc.cl"
+    role="Contributor"
+    if az role assignment create --assignee "$user_email" --role "$role" --scope "/subscriptions/$sub_id/resourceGroups/$resource_group"; then
+        echo "Rol asignado con éxito."
+        role_assigned=true
+    else
+        handle_error "No se pudo asignar el rol al usuario."
+    fi
+}
 
 # Función para realizar la limpieza de recursos
 cleanup_resources() {
@@ -214,10 +251,13 @@ fi
 if $vm_status; then
     install_web_server
 fi
-if $webserver_status; then
+if $webserver_install_status; then
     open_port_80
 fi
 if $port_opened; then
+    check_web_server_status
+fi
+if $webserver_status; then
     create_sql_server
 fi
 if $db_server; then
@@ -227,8 +267,11 @@ if $firewall_conf; then
     create_db
 fi
 if $sql_status; then
-    cleanup_resources
+    assign_role_to_user
 fi
-if $cleanup_done; then
+if $role_assigned; then
+    # cleanup_resources
     echo "Script terminado"
 fi
+# if $cleanup_done; then
+# fi

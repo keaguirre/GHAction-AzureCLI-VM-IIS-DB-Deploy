@@ -13,6 +13,7 @@ virtualnet_status=false
 public_ip_status=false
 nsg_rules_status=false
 ip_status=false
+role_assigned=false
 resource_group="evaluacion-1"
 location="eastus"
 vm_name="vm-evaluacion-1"
@@ -23,6 +24,8 @@ nic_name="nic_grupo3"
 subnet_name="grupo3"
 vnet_name="vnet_grupo3"
 db_name="keaguirre"
+role="Contributor"
+sub_id="4e877f2d-3cad-47bf-b2f1-ca81f9ceca54"
 
 # Función para manejar errores
 handle_error() {
@@ -204,8 +207,9 @@ assign_role_to_user() {
     echo "Asignando rol al usuario..."
     user_email="chr.cabrera@duocuc.cl"
     role="Contributor"
-    if az role assignment create --assignee "$user_email" --role "$role" --resource-group "$resource_group"; then
+    if az role assignment create --assignee "$user_email" --role "$role" --scope "/subscriptions/$sub_id/resourceGroups/$resource_group"; then
         echo "Rol asignado con éxito."
+        role_assigned=true
     else
         handle_error "No se pudo asignar el rol al usuario."
     fi
@@ -263,9 +267,11 @@ if $firewall_conf; then
     create_db
 fi
 if $sql_status; then
-    cleanup_resources
-    # echo "Cleanup resources"
+    assign_role_to_user
 fi
-if $cleanup_done; then
+if $role_assigned; then
+    # cleanup_resources
     echo "Script terminado"
 fi
+# if $cleanup_done; then
+# fi

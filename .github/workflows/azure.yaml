@@ -15,4 +15,18 @@ jobs:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
       - name: Run Azure sh script
+        env:
+          INPUT_PASSWORD: ${{ secrets.INPUT_PASSWORD }}
+          INPUT_SUB_ID: ${{ secrets.INPUT_SUB_ID }}
+          INPUT_IP_NAME: ${{ vars.INPUT_IP_NAME }}
+          INPUT_RESOURCE_GROUP: ${{ vars.INPUT_RESOURCE_GROUP }}
+          INPUT_LOCATION: ${{ vars.INPUT_LOCATION }}
+          INPUT_VM_NAME: ${{ vars.INPUT_VM_NAME }}
+          INPUT_USERNAME: ${{ vars.INPUT_USERNAME }}
+          INPUT_NSG_NAME: ${{ vars.INPUT_NSG_NAME }}
+          INPUT_NIC_NAME: ${{ vars.INPUT_NIC_NAME }}
+          INPUT_SUBNET_NAME: ${{ vars.INPUT_SUBNET_NAME }}
+          INPUT_VNET_NAME: ${{ vars.INPUT_VNET_NAME }}
+          INPUT_DB_NAME: ${{ vars.INPUT_DB_NAME }}
+          INPUT_ROLE: ${{ vars.INPUT_ROLE }}
         run: bash scriptBashAction.sh
